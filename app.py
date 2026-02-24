@@ -97,9 +97,10 @@ st.markdown("""
         color: #444444;
     }
     
-    /* 手机壳：直接作用在第一列容器上 */
-    :not([data-testid="stSidebar"]) > [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child,
-    :not([data-testid="stSidebar"]) [data-testid="stLayoutWrapper"] > div > [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
+    /* 手机壳样式修复：兼容云端与本地环境 */
+    /* 使用更宽泛的 descendant selector (空格) 替代 direct child selector (>) */
+    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type,
+    div[data-testid="stAppViewBlockContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type {
         width: 390px !important;
         min-width: 390px !important;
         max-width: 390px !important;
@@ -116,9 +117,9 @@ st.markdown("""
         flex-shrink: 0 !important;
     }
     
-    /* 移除列内部 Streamlit 默认的多余 padding */
-    :not([data-testid="stSidebar"]) > [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child,
-    :not([data-testid="stSidebar"]) [data-testid="stLayoutWrapper"] > div > [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child {
+    /* 同步修复内部 padding */
+    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type > div:first-child,
+    div[data-testid="stAppViewBlockContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type > div:first-child {
         padding: 0 !important;
         gap: 0 !important;
     }
