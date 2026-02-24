@@ -440,7 +440,7 @@ def main():
                     
                     with st.expander("💬 仍然想不起来？向 AI 深度追问前文细节"):
                         st.info("💡 渐进式交互演示：真实产品中，用户可在此输入具体问题（如：'萧炎的三年之约是怎么回事？'），AI 将基于全书 RAG 检索精准解答。")
-                        st.chat_input("向 AI 提问前文细节 (Demo 演示暂不调用接口)...", disabled=True)
+                        st.text_input("向 AI 提问前文细节 (Demo 演示暂不调用接口)...", disabled=True)
             
             if chapters and current_idx < len(chapters):
                 current_content = chapters[current_idx]['content']
