@@ -3,7 +3,11 @@ from openai import OpenAI
 import re
 import os
 
-st.set_page_config(page_title="微信读书 AI 前情提要", layout="wide")
+st.set_page_config(
+    page_title="微信读书 AI 前情提要",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 st.markdown("""
 <style>
