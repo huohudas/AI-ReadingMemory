@@ -98,30 +98,29 @@ st.markdown("""
     }
     
     /* ==========================================
-       防挤压布局：侧边栏与手机壳互不干扰
+       优先级布局：侧边栏 > 手机壳 > AI面板
        ========================================== */
-    /* 1. 侧边栏：层级置顶 */
+    /* 1. 侧边栏：最高优先级，不可压缩 */
     section[data-testid="stSidebar"] {
         z-index: 9999 !important;
+        flex-shrink: 0 !important;
     }
-    /* 2. 主界面容器：关键修复！预留侧边栏空间 */
-    [data-testid="stAppViewBlockContainer"] {
-        max-width: calc(100% - 20px) !important;
-        padding-left: 20px !important;
-        padding-right: 20px !important;
+    /* 2. 主内容容器：允许换行以保护刚性元素 */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+        gap: 20px !important;
     }
-    /* 3. 手机壳：强制防变形 */
+    /* 3. 手机壳：刚性布局，锁死尺寸 */
     [data-testid="stHorizontalBlock"] > div:first-child,
     section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > div:first-child {
-        /* 尺寸强制 - 必须加上 max-width 防止拉伸 */
+        /* 锁死尺寸：绝不压缩 */
+        flex: 0 0 390px !important;
         width: 390px !important;
         min-width: 390px !important;
-        max-width: 390px !important;
         height: 780px !important;
-        max-height: 780px !important;
-        /* 防止被压缩 */
-        flex: 0 0 390px !important;
-        /* 外观 */
+        /* 外观样式 */
         background-color: #F7F7F4 !important;
         border: 12px solid #111111 !important;
         border-radius: 40px !important;
@@ -129,18 +128,18 @@ st.markdown("""
         padding: 24px 16px !important;
         box-sizing: border-box !important;
         overflow-y: auto !important;
-        overflow-x: hidden !important;
-        /* 布局 */
-        margin-right: 30px !important;
+        /* 换行后依然保持靠左 */
+        margin-left: 0 !important;
     }
-    /* 4. AI面板：弹性适应 */
+    /* 4. AI 面板：弹性布局，空间不够就换行 */
     [data-testid="stHorizontalBlock"] > div:last-child {
-        flex: 1 1 400px !important;
+        flex: 1 1 300px !important;
         min-width: 300px !important;
+        margin-top: 0 !important;
     }
-    /* 5. 强制不换行 */
-    [data-testid="stHorizontalBlock"] {
-        flex-wrap: nowrap !important;
+    /* 5. 主容器内边距 */
+    [data-testid="stAppViewBlockContainer"] {
+        padding: 2rem !important;
     }
     /* 6. 内部内容 padding */
     [data-testid="stHorizontalBlock"] > div:first-child > div {
