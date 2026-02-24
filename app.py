@@ -101,9 +101,8 @@ st.markdown("""
         color: #444444;
     }
     
-    /* 手机壳：本地端通过 data-testid 命中，云端通过 JS 动态注入 phone-shell-column class */
-    [data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child,
-    .phone-shell-column {
+    /* 手机壳：本地端通过 data-testid 命中 */
+    [data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
         width: 390px !important;
         min-width: 390px !important;
         max-width: 390px !important;
@@ -121,8 +120,29 @@ st.markdown("""
     }
     
     /* 移除列内部 Streamlit 默认的多余 padding */
-    [data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child,
-    .phone-shell-column > div:first-child {
+    [data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child {
+        padding: 0 !important;
+        gap: 0 !important;
+    }
+    
+    /* 云端兼容：直接用 stLayoutWrapper 定位 */
+    [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
+        width: 390px !important;
+        min-width: 390px !important;
+        max-width: 390px !important;
+        height: 780px !important;
+        max-height: 780px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        background-color: #F7F7F4 !important;
+        border: 12px solid #111111 !important;
+        border-radius: 40px !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45), 0 0 0 2px #333333 !important;
+        padding: 24px 16px !important;
+        box-sizing: border-box !important;
+        flex-shrink: 0 !important;
+    }
+    [data-testid="stLayoutWrapper"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child {
         padding: 0 !important;
         gap: 0 !important;
     }
@@ -261,44 +281,6 @@ def main():
         thinking_process = ""
         
         with col_phone:
-            # 云端兼容：通过 JS 动态为列容器注入手机壳 class
-            import streamlit.components.v1 as components
-            components.html("""
-            <script>
-            (function() {
-                function applyShell() {
-                    var cols = window.parent.document.querySelectorAll('[data-testid="column"]');
-                    for (var i = 0; i < cols.length; i++) {
-                        if (!cols[i].closest('[data-testid="stSidebar"]')) {
-                            cols[i].classList.add('phone-shell-column');
-                            break;
-                        }
-                    }
-                }
-                setTimeout(applyShell, 300);
-                setTimeout(applyShell, 800);
-            })();
-            </script>
-            """, height=1)
-
-            # 切换章节时滚动回顶部
-            if st.session_state.get("last_chapter") != current_chapter:
-                st.session_state["last_chapter"] = current_chapter
-                components.html("""
-                <script>
-                (function() {
-                    function resetScroll() {
-                        var cols = window.parent.document.querySelectorAll('[data-testid="column"]');
-                        for (var i = 0; i < cols.length; i++) {
-                            cols[i].scrollTop = 0;
-                        }
-                    }
-                    setTimeout(resetScroll, 300);
-                    setTimeout(resetScroll, 600);
-                })();
-                </script>
-                """, height=1)
-            
             st.markdown('<div class="book-title">📖 斗破苍穹</div>', unsafe_allow_html=True)
             
             if days_passed >= 3 and current_idx > 0 and not st.session_state.ignored_recap:
