@@ -120,6 +120,17 @@ st.markdown("""
         padding: 0 !important;
         gap: 0 !important;
     }
+    
+    /* 忽略按钮：灰色低调全宽，无任何定位 */
+    [data-testid="stAppViewBlockContainer"] button[key="ignore_btn"],
+    [data-testid="stAppViewBlockContainer"] [data-testid="stButton"]:has(button[data-testid="baseButton-secondary"]) button {
+        background-color: transparent !important;
+        border: 1px solid #E8E8E8 !important;
+        color: #CCCCCC !important;
+        font-size: 12px !important;
+        border-radius: 8px !important;
+        height: 28px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -220,6 +231,14 @@ def main():
         st.markdown(f"<div style='color: #666666; font-size: 12px; text-align: center; margin-top: 10px;'>已过 {days_passed} 天未阅读</div>", unsafe_allow_html=True)
     
     if chapters and len(chapters) > 0:
+        if "ignored_recap" not in st.session_state:
+            st.session_state.ignored_recap = False
+        
+        # 切换章节时重置忽略状态
+        if st.session_state.get("last_chapter_ignore") != current_chapter:
+            st.session_state["last_chapter_ignore"] = current_chapter
+            st.session_state.ignored_recap = False
+        
         col_phone, col_ai_board = st.columns([1, 1.3], gap="large")
         
         thinking_process = ""
@@ -247,8 +266,24 @@ def main():
             
             st.markdown('<div class="book-title">📖 斗破苍穹</div>', unsafe_allow_html=True)
             
-            if days_passed >= 3 and current_idx > 0:
-                st.markdown(f'<div class="hint-banner">💡 距离上次阅读已过 {days_passed} 天，AI 已备好前情提要</div>', unsafe_allow_html=True)
+            if days_passed >= 3 and current_idx > 0 and not st.session_state.ignored_recap:
+                st.markdown(f"""
+                <div style="
+                    background:linear-gradient(135deg,#FFF9E6 0%,#FFF3CD 100%);
+                    border-radius:12px; padding:8px 12px;
+                    border-left:4px solid #FFB800;
+                    margin-bottom:4px;
+                ">
+                    <span style="font-size:14px; color:#856404;">
+                        💡 已过 {days_passed} 天，AI 已备好前情提要
+                    </span>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button("✕ 不需要回顾，直接阅读", key="ignore_btn", use_container_width=True):
+                    st.session_state.ignored_recap = True
+                    st.session_state.ai_response = None
+                    st.rerun()
                 
                 if "ai_response" not in st.session_state:
                     st.session_state.ai_response = None
@@ -305,7 +340,7 @@ def main():
                             except Exception as e:
                                 st.error(f"API 调用失败: {str(e)}")
                 
-                if st.session_state.ai_response:
+                if st.session_state.ai_response and not st.session_state.ignored_recap:
                     ai_result = st.session_state.ai_response
                     
                     if "【AI分析过程】" in ai_result and "【剧情回顾】" in ai_result:
