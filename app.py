@@ -100,21 +100,34 @@ st.markdown("""
     /* ==========================================
        优先级布局：侧边栏 > 手机壳 > AI面板
        ========================================== */
-    /* 1. 侧边栏：最高优先级，不可压缩 */
+    /* 1. 侧边栏：最高优先级，不可压缩，允许滚动 */
     section[data-testid="stSidebar"] {
         z-index: 9999 !important;
         flex-shrink: 0 !important;
+        position: relative !important;
+        /* 关键修复：允许垂直滚动 */
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        /* 确保高度自适应视口 */
+        height: 100vh !important;
+        max-height: 100vh !important;
+        background-color: #F8F9FA !important;
     }
-    /* 2. 主内容容器：允许换行以保护刚性元素 */
-    [data-testid="stHorizontalBlock"] {
+    /* 确保侧边栏内部的内容容器不会被截断 */
+    section[data-testid="stSidebar"] > div {
+        height: auto !important;
+        overflow: visible !important;
+    }
+    /* 2. 主内容容器：允许换行以保护刚性元素（仅主界面） */
+    section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-wrap: wrap !important;
         align-items: flex-start !important;
         gap: 20px !important;
     }
-    /* 3. 手机壳：刚性布局，锁死尺寸 */
-    [data-testid="stHorizontalBlock"] > div:first-child,
-    section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > div:first-child {
+    /* 3. 手机壳样式修复：精准定位主界面，排除侧边栏干扰 */
+    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type,
+    div[data-testid="stAppViewBlockContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type {
         /* 锁死尺寸：绝不压缩 */
         flex: 0 0 390px !important;
         width: 390px !important;
@@ -131,8 +144,8 @@ st.markdown("""
         /* 换行后依然保持靠左 */
         margin-left: 0 !important;
     }
-    /* 4. AI 面板：弹性布局，空间不够就换行 */
-    [data-testid="stHorizontalBlock"] > div:last-child {
+    /* 4. AI 面板：弹性布局（仅主界面） */
+    section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > div:last-child {
         flex: 1 1 300px !important;
         min-width: 300px !important;
         margin-top: 0 !important;
@@ -141,8 +154,8 @@ st.markdown("""
     [data-testid="stAppViewBlockContainer"] {
         padding: 2rem !important;
     }
-    /* 6. 内部内容 padding */
-    [data-testid="stHorizontalBlock"] > div:first-child > div {
+    /* 6. 内部内容 padding（仅主界面） */
+    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type > div:first-child {
         padding: 0 !important;
     }
     
@@ -155,6 +168,22 @@ st.markdown("""
         font-size: 12px !important;
         border-radius: 8px !important;
         height: 28px !important;
+    }
+    
+    /* ==========================================
+       侧边栏遮挡修复：强制移除定位覆盖
+       ========================================== */
+    /* 1. 主容器：移除 absolute 定位，回归正常文档流 */
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMainBlockContainer"],
+    [data-testid="stMain"] {
+        position: relative !important;
+        left: auto !important;
+        margin-left: 0 !important;
+    }
+    /* 2. 侧边栏切换按钮：确保可点击 */
+    button[data-testid="stBaseButton-headerNoPadding"] {
+        z-index: 10000 !important;
     }
 </style>
 """, unsafe_allow_html=True)
