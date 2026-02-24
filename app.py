@@ -98,7 +98,8 @@ st.markdown("""
     }
     
     /* 手机壳：直接作用在第一列容器上 */
-    [data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
+    :not([data-testid="stSidebar"]) > [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child,
+    :not([data-testid="stSidebar"]) [data-testid="stLayoutWrapper"] > div > [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
         width: 390px !important;
         min-width: 390px !important;
         max-width: 390px !important;
@@ -116,14 +117,15 @@ st.markdown("""
     }
     
     /* 移除列内部 Streamlit 默认的多余 padding */
-    [data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child {
+    :not([data-testid="stSidebar"]) > [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child,
+    :not([data-testid="stSidebar"]) [data-testid="stLayoutWrapper"] > div > [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child {
         padding: 0 !important;
         gap: 0 !important;
     }
     
     /* 忽略按钮：灰色低调全宽，无任何定位 */
-    [data-testid="stAppViewBlockContainer"] button[key="ignore_btn"],
-    [data-testid="stAppViewBlockContainer"] [data-testid="stButton"]:has(button[data-testid="baseButton-secondary"]) button {
+    :not([data-testid="stSidebar"]) button[key="ignore_btn"],
+    :not([data-testid="stSidebar"]) [data-testid="stButton"]:has(button[data-testid="baseButton-secondary"]) button {
         background-color: transparent !important;
         border: 1px solid #E8E8E8 !important;
         color: #CCCCCC !important;
