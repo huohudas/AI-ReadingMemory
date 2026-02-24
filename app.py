@@ -101,46 +101,8 @@ st.markdown("""
         color: #444444;
     }
     
-    /* ==========================================
-       优先级布局：侧边栏 > 手机壳 > AI面板
-       ========================================== */
-    /* 1. 侧边栏：最高优先级，不可压缩，允许滚动 */
-    section[data-testid="stSidebar"] {
-        z-index: 9999 !important;
-        flex-shrink: 0 !important;
-        position: relative !important;
-        /* 关键修复：允许垂直滚动 */
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        /* 确保高度自适应视口 */
-        height: 100vh !important;
-        max-height: 100vh !important;
-        background-color: #F8F9FA !important;
-    }
-    /* 确保侧边栏内部的内容容器不会被截断 */
-    section[data-testid="stSidebar"] > div {
-        height: auto !important;
-        overflow: visible !important;
-    }
-    /* 2. 主内容容器：允许换行以保护刚性元素（仅主界面） */
-    section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        align-items: flex-start !important;
-        gap: 20px !important;
-    }
-    /* 3. AI 面板：弹性布局（仅主界面） */
-    section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > div:last-child {
-        flex: 1 1 300px !important;
-        min-width: 300px !important;
-        margin-top: 0 !important;
-    }
-    /* 4. 主容器内边距 */
-    [data-testid="stAppViewBlockContainer"] {
-        padding: 2rem !important;
-    }
-    
-    /* 手机壳唯一标记 */
+    /* 手机壳：本地端通过 data-testid 命中，云端通过 JS 动态注入 phone-shell-column class */
+    [data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child,
     .phone-shell-column {
         width: 390px !important;
         min-width: 390px !important;
@@ -157,14 +119,17 @@ st.markdown("""
         box-sizing: border-box !important;
         flex-shrink: 0 !important;
     }
+    
+    /* 移除列内部 Streamlit 默认的多余 padding */
+    [data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div:first-child,
     .phone-shell-column > div:first-child {
         padding: 0 !important;
         gap: 0 !important;
     }
     
     /* 忽略按钮：灰色低调全宽，无任何定位 */
-    :not([data-testid="stSidebar"]) button[key="ignore_btn"],
-    :not([data-testid="stSidebar"]) [data-testid="stButton"]:has(button[data-testid="baseButton-secondary"]) button {
+    [data-testid="stAppViewBlockContainer"] button[key="ignore_btn"],
+    [data-testid="stAppViewBlockContainer"] [data-testid="stButton"]:has(button[data-testid="baseButton-secondary"]) button {
         background-color: transparent !important;
         border: 1px solid #E8E8E8 !important;
         color: #CCCCCC !important;
@@ -172,26 +137,19 @@ st.markdown("""
         border-radius: 8px !important;
         height: 28px !important;
     }
-    
-    /* ==========================================
-       侧边栏遮挡修复：强制移除定位覆盖
-       ========================================== */
-    /* 1. 主容器：移除 absolute 定位，回归正常文档流 */
-    [data-testid="stAppViewContainer"],
-    [data-testid="stMainBlockContainer"],
-    [data-testid="stMain"] {
-        position: relative !important;
-        left: auto !important;
-        margin-left: 0 !important;
-    }
-    /* 2. 侧边栏切换按钮：确保可点击 */
-    button[data-testid="stBaseButton-headerNoPadding"] {
-        z-index: 10000 !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache(allow_output_mutation=True)
+
+def _do_rerun():
+    """兼容新旧版本 Streamlit 的 rerun"""
+    try:
+        st.rerun()
+    except AttributeError:
+        st.experimental_rerun()
+
+
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def load_and_parse_book(filepath="book1.txt"):
     if not os.path.exists(filepath):
         return [{"title": "演示章节", "content": "未能找到 book1.txt 文件，请检查路径。"}]
@@ -220,6 +178,7 @@ def load_and_parse_book(filepath="book1.txt"):
             chapters.append({"title": title, "content": content})
     return chapters
 
+
 def get_api_key():
     api_key = None
     if os.path.exists("api_key.txt"):
@@ -235,6 +194,7 @@ def get_api_key():
         except Exception:
             pass
     return api_key
+
 
 def main():
     chapters = load_and_parse_book("book1.txt")
@@ -271,7 +231,7 @@ def main():
         if st.button("+ 导入划线", use_container_width=True):
             if new_hl.strip():
                 st.session_state.highlights.append(new_hl.strip())
-                st.experimental_rerun()
+                _do_rerun()
         
         if st.session_state.highlights:
             st.markdown("<div style='color:#333333; font-size:14px; margin-bottom:10px;'>已存划线记录：</div>", unsafe_allow_html=True)
@@ -280,7 +240,7 @@ def main():
                 col1.caption(f"{i+1}. {hl[:20]}..." if len(hl) > 20 else f"{i+1}. {hl}")
                 if col2.button("❌", key=f"del_{i}", help="删除此划线"):
                     st.session_state.highlights.pop(i)
-                    st.experimental_rerun()
+                    _do_rerun()
         else:
             st.caption("暂无历史划线记录")
         
@@ -301,16 +261,34 @@ def main():
         thinking_process = ""
         
         with col_phone:
+            # 云端兼容：通过 JS 动态为列容器注入手机壳 class
+            import streamlit.components.v1 as components
+            components.html("""
+            <script>
+            (function() {
+                function applyShell() {
+                    var cols = window.parent.document.querySelectorAll('[data-testid="column"]');
+                    for (var i = 0; i < cols.length; i++) {
+                        if (!cols[i].closest('[data-testid="stSidebar"]')) {
+                            cols[i].classList.add('phone-shell-column');
+                            break;
+                        }
+                    }
+                }
+                setTimeout(applyShell, 300);
+                setTimeout(applyShell, 800);
+            })();
+            </script>
+            """, height=1)
+
+            # 切换章节时滚动回顶部
             if st.session_state.get("last_chapter") != current_chapter:
                 st.session_state["last_chapter"] = current_chapter
-                import streamlit.components.v1 as components
                 components.html("""
                 <script>
                 (function() {
                     function resetScroll() {
-                        var cols = window.parent.document.querySelectorAll(
-                            '[data-testid="column"]'
-                        );
+                        var cols = window.parent.document.querySelectorAll('[data-testid="column"]');
                         for (var i = 0; i < cols.length; i++) {
                             cols[i].scrollTop = 0;
                         }
@@ -322,28 +300,6 @@ def main():
                 """, height=1)
             
             st.markdown('<div class="book-title">📖 斗破苍穹</div>', unsafe_allow_html=True)
-            
-            import streamlit.components.v1 as components
-            components.html("""
-            <script>
-            (function() {
-                function applyShell() {
-                    var allCols = window.parent.document.querySelectorAll(
-                        '[data-testid="column"], [class*="stColumn"]'
-                    );
-                    for (var i = 0; i < allCols.length; i++) {
-                        var col = allCols[i];
-                        if (!col.closest('[data-testid="stSidebar"]')) {
-                            col.classList.add('phone-shell-column');
-                            break;
-                        }
-                    }
-                }
-                setTimeout(applyShell, 300);
-                setTimeout(applyShell, 800);
-            })();
-            </script>
-            """, height=1)
             
             if days_passed >= 3 and current_idx > 0 and not st.session_state.ignored_recap:
                 st.markdown(f"""
@@ -362,7 +318,7 @@ def main():
                 if st.button("✕ 不需要回顾，直接阅读", key="ignore_btn", use_container_width=True):
                     st.session_state.ignored_recap = True
                     st.session_state.ai_response = None
-                    st.experimental_rerun()
+                    _do_rerun()
                 
                 if "ai_response" not in st.session_state:
                     st.session_state.ai_response = None
@@ -440,7 +396,12 @@ def main():
                     
                     with st.expander("💬 仍然想不起来？向 AI 深度追问前文细节"):
                         st.info("💡 渐进式交互演示：真实产品中，用户可在此输入具体问题（如：'萧炎的三年之约是怎么回事？'），AI 将基于全书 RAG 检索精准解答。")
-                        st.text_input("向 AI 提问前文细节 (Demo 演示暂不调用接口)...", disabled=True)
+                        st.text_input(
+                            "向 AI 提问前文细节",
+                            placeholder="Demo 演示暂不调用接口...",
+                            disabled=True,
+                            label_visibility="collapsed"
+                        )
             
             if chapters and current_idx < len(chapters):
                 current_content = chapters[current_idx]['content']
