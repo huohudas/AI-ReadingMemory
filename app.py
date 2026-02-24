@@ -97,31 +97,55 @@ st.markdown("""
         color: #444444;
     }
     
-    /* 手机壳样式修复：兼容云端与本地环境 */
-    /* 使用更宽泛的 descendant selector (空格) 替代 direct child selector (>) */
-    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type,
-    div[data-testid="stAppViewBlockContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type {
+    /* ==========================================
+       手机壳样式强制修复版
+       ========================================== */
+    /* 1. 确保主容器不挤压左侧列 */
+    [data-testid="stMainBlockContainer"] {
+        padding-left: 0 !important;
+    }
+    [data-testid="stHorizontalBlock"] {
+        gap: 0 !important;
+    }
+    /* 2. 强制手机壳列显示 (兼容云端多层级结构) */
+    /* 无论云端套了多少层 div，这几条规则都能穿透 */
+    [data-testid="stHorizontalBlock"] > div:first-child,
+    section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > div:first-child,
+    div[data-testid="stAppViewBlockContainer"] [data-testid="stHorizontalBlock"] > div:first-child {
+        /* 强制覆盖 Flex 属性 */
+        flex: 0 0 390px !important;
+        display: flex !important;
+        /* 尺寸锁定 */
         width: 390px !important;
         min-width: 390px !important;
         max-width: 390px !important;
         height: 780px !important;
         max-height: 780px !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
+        /* 外观样式 */
         background-color: #F7F7F4 !important;
         border: 12px solid #111111 !important;
         border-radius: 40px !important;
         box-shadow: 0 20px 50px rgba(0,0,0,0.45), 0 0 0 2px #333333 !important;
         padding: 24px 16px !important;
         box-sizing: border-box !important;
-        flex-shrink: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        /* 定位修复 */
+        position: relative !important;
+        left: 0 !important;
+        top: 50px !important;
     }
-    
-    /* 同步修复内部 padding */
-    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type > div:first-child,
-    div[data-testid="stAppViewBlockContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type > div:first-child {
+    /* 3. 修复内部内容的 padding */
+    [data-testid="stHorizontalBlock"] > div:first-child > div {
         padding: 0 !important;
-        gap: 0 !important;
+    }
+    /* 4. 确保右侧 AI 面板正常显示 */
+    [data-testid="stHorizontalBlock"] > div:last-child {
+        flex: 1 1 auto !important;
+        margin-left: 40px !important;
+        padding-top: 20px !important;
+        padding-right: 20px !important;
+        overflow: visible !important;
     }
     
     /* 忽略按钮：灰色低调全宽，无任何定位 */
