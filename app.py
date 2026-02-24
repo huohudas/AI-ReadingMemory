@@ -191,7 +191,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache_data
+@st.cache(allow_output_mutation=True)
 def load_and_parse_book(filepath="book1.txt"):
     if not os.path.exists(filepath):
         return [{"title": "演示章节", "content": "未能找到 book1.txt 文件，请检查路径。"}]
