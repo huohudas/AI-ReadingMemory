@@ -271,7 +271,7 @@ def main():
         if st.button("+ 导入划线", use_container_width=True):
             if new_hl.strip():
                 st.session_state.highlights.append(new_hl.strip())
-                st.rerun()
+                st.experimental_rerun()
         
         if st.session_state.highlights:
             st.markdown("<div style='color:#333333; font-size:14px; margin-bottom:10px;'>已存划线记录：</div>", unsafe_allow_html=True)
@@ -280,7 +280,7 @@ def main():
                 col1.caption(f"{i+1}. {hl[:20]}..." if len(hl) > 20 else f"{i+1}. {hl}")
                 if col2.button("❌", key=f"del_{i}", help="删除此划线"):
                     st.session_state.highlights.pop(i)
-                    st.rerun()
+                    st.experimental_rerun()
         else:
             st.caption("暂无历史划线记录")
         
@@ -362,7 +362,7 @@ def main():
                 if st.button("✕ 不需要回顾，直接阅读", key="ignore_btn", use_container_width=True):
                     st.session_state.ignored_recap = True
                     st.session_state.ai_response = None
-                    st.rerun()
+                    st.experimental_rerun()
                 
                 if "ai_response" not in st.session_state:
                     st.session_state.ai_response = None
