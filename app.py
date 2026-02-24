@@ -98,82 +98,19 @@ st.markdown("""
     }
     
     /* ==========================================
-       优先级布局：侧边栏 > 手机壳 > AI面板
+       终极稳健版：无视标签变化，强制适配云端
        ========================================== */
-    /* 1. 侧边栏：最高优先级，不可压缩，允许滚动 */
-    section[data-testid="stSidebar"] {
+    /* 1. 侧边栏：强制可见，最高层级 */
+    [data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
         z-index: 9999 !important;
-        flex-shrink: 0 !important;
         position: relative !important;
-        /* 关键修复：允许垂直滚动 */
         overflow-y: auto !important;
-        overflow-x: hidden !important;
-        /* 确保高度自适应视口 */
         height: 100vh !important;
-        max-height: 100vh !important;
         background-color: #F8F9FA !important;
     }
-    /* 确保侧边栏内部的内容容器不会被截断 */
-    section[data-testid="stSidebar"] > div {
-        height: auto !important;
-        overflow: visible !important;
-    }
-    /* 2. 主内容容器：允许换行以保护刚性元素（仅主界面） */
-    section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        align-items: flex-start !important;
-        gap: 20px !important;
-    }
-    /* 3. 手机壳样式修复：精准定位主界面，排除侧边栏干扰 */
-    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type,
-    div[data-testid="stAppViewBlockContainer"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type {
-        /* 锁死尺寸：绝不压缩 */
-        flex: 0 0 390px !important;
-        width: 390px !important;
-        min-width: 390px !important;
-        height: 780px !important;
-        /* 外观样式 */
-        background-color: #F7F7F4 !important;
-        border: 12px solid #111111 !important;
-        border-radius: 40px !important;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
-        padding: 24px 16px !important;
-        box-sizing: border-box !important;
-        overflow-y: auto !important;
-        /* 换行后依然保持靠左 */
-        margin-left: 0 !important;
-    }
-    /* 4. AI 面板：弹性布局（仅主界面） */
-    section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > div:last-child {
-        flex: 1 1 300px !important;
-        min-width: 300px !important;
-        margin-top: 0 !important;
-    }
-    /* 5. 主容器内边距 */
-    [data-testid="stAppViewBlockContainer"] {
-        padding: 2rem !important;
-    }
-    /* 6. 内部内容 padding（仅主界面） */
-    section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] div[data-testid="column"]:first-of-type > div:first-child {
-        padding: 0 !important;
-    }
-    
-    /* 忽略按钮：灰色低调全宽，无任何定位 */
-    :not([data-testid="stSidebar"]) button[key="ignore_btn"],
-    :not([data-testid="stSidebar"]) [data-testid="stButton"]:has(button[data-testid="baseButton-secondary"]) button {
-        background-color: transparent !important;
-        border: 1px solid #E8E8E8 !important;
-        color: #CCCCCC !important;
-        font-size: 12px !important;
-        border-radius: 8px !important;
-        height: 28px !important;
-    }
-    
-    /* ==========================================
-       侧边栏遮挡修复：强制移除定位覆盖
-       ========================================== */
-    /* 1. 主容器：移除 absolute 定位，回归正常文档流 */
+    /* 2. 主容器：移除干扰定位 */
     [data-testid="stAppViewContainer"],
     [data-testid="stMainBlockContainer"],
     [data-testid="stMain"] {
@@ -181,7 +118,49 @@ st.markdown("""
         left: auto !important;
         margin-left: 0 !important;
     }
-    /* 2. 侧边栏切换按钮：确保可点击 */
+    /* 3. 手机壳：使用通配符匹配，不限制父级是 section 还是 main */
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-of-type {
+        /* 强制尺寸 */
+        width: 390px !important;
+        min-width: 390px !important;
+        max-width: 390px !important;
+        height: 780px !important;
+        flex: 0 0 390px !important;
+        /* 外观 */
+        background-color: #F7F7F4 !important;
+        border: 12px solid #111111 !important;
+        border-radius: 40px !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
+        padding: 24px 16px !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+    /* 4. 侧边栏内防止误伤：重置侧边栏内的列样式 */
+    [data-testid="stSidebar"] div[data-testid="column"] {
+        width: auto !important;
+        height: auto !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background-color: transparent !important;
+        flex: 1 1 auto !important;
+    }
+    /* 5. AI 面板：弹性布局 */
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-of-type {
+        flex: 1 1 300px !important;
+        min-width: 300px !important;
+    }
+    /* 6. 必要的布局容器设置 */
+    div[data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 20px !important;
+    }
+    /* 7. 主容器内边距 */
+    [data-testid="stAppViewBlockContainer"] {
+        padding: 2rem !important;
+    }
+    /* 8. 侧边栏切换按钮：确保可点击 */
     button[data-testid="stBaseButton-headerNoPadding"] {
         z-index: 10000 !important;
     }
